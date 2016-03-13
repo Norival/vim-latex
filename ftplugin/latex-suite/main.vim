@@ -942,34 +942,27 @@ function! Tex_GotoTempFile()
 	exec 'silent! split '.s:tempFileName
 endfunction " }}}
 " Tex_IsPresentInFile: finds if a string str, is present in filename {{{
-if has('python') && g:Tex_UsePython
-	function! Tex_IsPresentInFile(regexp, filename)
-		exec 'python isPresentInFile(r"'.a:regexp.'", r"'.a:filename.'")'
+function! Tex_IsPresentInFile(regexp, filename)
+	call Tex_GotoTempFile()
 
-		return retval
-	endfunction
-else
-	function! Tex_IsPresentInFile(regexp, filename)
-		call Tex_GotoTempFile()
+	silent! 1,$ d _
+	let _report = &report
+	let _sc = &sc
+	set report=9999999 nosc
+	exec 'silent! 0r! '.g:Tex_CatCmd.' '.a:filename
+	set nomod
+	let &report = _report
+	let &sc = _sc
 
-		silent! 1,$ d _
-		let _report = &report
-		let _sc = &sc
-		set report=9999999 nosc
-		exec 'silent! 0r! '.g:Tex_CatCmd.' '.a:filename
-		set nomod
-		let &report = _report
-		let &sc = _sc
-
-		if search(a:regexp, 'w')
-			let retval = 1
-		else
-			let retval = 0
-		endif
-		silent! bd
-		return retval
-	endfunction
-endif " }}}
+	if search(a:regexp, 'w')
+		let retval = 1
+	else
+		let retval = 0
+	endif
+	silent! bd
+	return retval
+endfunction
+" }}}
 " Tex_CatFile: returns the contents of a file in a <NL> seperated string {{{
 if exists('*readfile')
 	function! Tex_CatFile(filename)
